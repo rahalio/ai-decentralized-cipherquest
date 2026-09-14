@@ -1,0 +1,677 @@
+openapi: 3.0.3
+info:
+  title: Cipherquest
+  version: 0.1.0
+  description: Weekly encrypted data-science competitions with IP-preserving model submissions and ranked
+    payouts.
+  x-product-slug: ai-decentralized-cipherquest
+  x-source: ai-in-decentralized+ai/decentralizedai-180428175529/
+servers:
+- url: https://api.example.com
+tags:
+- name: Competitions
+  description: Tournament lifecycle
+- name: Datasets
+  description: Encrypted dataset release
+- name: Submissions
+  description: Encrypted model artefacts
+- name: Scores
+  description: Sealed evaluation and ranking
+- name: Payouts
+  description: Ranked and originality payouts
+- name: Challenges
+  description: Score dispute desk
+paths:
+  /v1/competitions:
+    get:
+      operationId: listCompetitions
+      tags:
+      - Competitions
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopeCompetition'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+    post:
+      operationId: createCompetition
+      tags:
+      - Competitions
+      security:
+      - BearerAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeCompetition'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetitionCreate'
+  /v1/competitions/{competitionId}/datasets:
+    post:
+      operationId: releaseEncryptedDataset
+      tags:
+      - Datasets
+      security:
+      - BearerAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeEncryptedDataset'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+      - name: competitionId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EncryptedDataset'
+  /v1/competitions/{competitionId}/submissions:
+    post:
+      operationId: submitEncryptedModel
+      tags:
+      - Submissions
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeSubmission'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+      - name: competitionId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionCreate'
+    get:
+      operationId: listSubmissions
+      tags:
+      - Submissions
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopeSubmission'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+      - name: competitionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Cursor'
+  /v1/competitions/{competitionId}/scores:
+    get:
+      operationId: listScores
+      tags:
+      - Scores
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopeScoreRecord'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+      - name: competitionId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: recordScore
+      tags:
+      - Scores
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeScoreRecord'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+      - name: competitionId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScoreRecord'
+  /v1/payouts:
+    get:
+      operationId: listPayouts
+      tags:
+      - Payouts
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopePayout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - name: competitionId
+        in: query
+        schema:
+          type: string
+  /v1/payouts/{payoutId}/execute:
+    post:
+      operationId: executePayout
+      tags:
+      - Payouts
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopePayout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+      - name: payoutId
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/challenges:
+    post:
+      operationId: openScoreChallenge
+      tags:
+      - Challenges
+      security:
+      - BearerAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeChallenge'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChallengeCreate'
+  /v1/challenges/{challengeId}:
+    get:
+      operationId: getChallenge
+      tags:
+      - Challenges
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeChallenge'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+      - name: challengeId
+        in: path
+        required: true
+        schema:
+          type: string
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    UnprocessableEntity:
+      description: Unprocessable entity
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    ResponseMeta:
+      type: object
+      required:
+      - requestId
+      - timestamp
+      properties:
+        requestId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    Problem:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+    Competition:
+      type: object
+      required:
+      - id
+      - status
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        topN:
+          type: integer
+        status:
+          type: string
+          enum:
+          - draft
+          - open
+          - scoring
+          - settled
+          - blocked
+        originalityBonusPool:
+          type: number
+    CompetitionCreate:
+      type: object
+      required:
+      - title
+      - topN
+      properties:
+        title:
+          type: string
+        topN:
+          type: integer
+        originalityBonusPool:
+          type: number
+        scoringDefinition:
+          type: string
+    EncryptedDataset:
+      type: object
+      required:
+      - id
+      - competitionId
+      - expiresAt
+      properties:
+        id:
+          type: string
+        competitionId:
+          type: string
+        ciphertextUri:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        provenanceAttestationId:
+          type: string
+    Submission:
+      type: object
+      required:
+      - id
+      - competitionId
+      - participantId
+      properties:
+        id:
+          type: string
+        competitionId:
+          type: string
+        participantId:
+          type: string
+        encryptedArtefactUri:
+          type: string
+        ipRetained:
+          type: boolean
+    SubmissionCreate:
+      type: object
+      required:
+      - participantId
+      - encryptedArtefactUri
+      properties:
+        participantId:
+          type: string
+        encryptedArtefactUri:
+          type: string
+    ScoreRecord:
+      type: object
+      required:
+      - id
+      - submissionId
+      - accuracy
+      properties:
+        id:
+          type: string
+        submissionId:
+          type: string
+        accuracy:
+          type: number
+        rank:
+          type: integer
+        originalityEligible:
+          type: boolean
+    Payout:
+      type: object
+      required:
+      - id
+      - competitionId
+      - status
+      properties:
+        id:
+          type: string
+        competitionId:
+          type: string
+        participantId:
+          type: string
+        amount:
+          type: number
+        kind:
+          type: string
+          enum:
+          - rank
+          - originality
+        status:
+          type: string
+          enum:
+          - draft
+          - executed
+          - failed
+    Challenge:
+      type: object
+      required:
+      - id
+      - scoreId
+      - status
+      properties:
+        id:
+          type: string
+        scoreId:
+          type: string
+        status:
+          type: string
+          enum:
+          - open
+          - upheld
+          - rejected
+        reason:
+          type: string
+    ChallengeCreate:
+      type: object
+      required:
+      - scoreId
+      - reason
+      properties:
+        scoreId:
+          type: string
+        reason:
+          type: string
+    DataEnvelopeCompetition:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/Competition'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeCompetition:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Competition'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    DataEnvelopeEncryptedDataset:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/EncryptedDataset'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeEncryptedDataset:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/EncryptedDataset'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    DataEnvelopeSubmission:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/Submission'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeSubmission:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Submission'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    DataEnvelopeScoreRecord:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/ScoreRecord'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeScoreRecord:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/ScoreRecord'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    DataEnvelopePayout:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/Payout'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopePayout:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Payout'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    DataEnvelopeChallenge:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/Challenge'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeChallenge:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Challenge'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
